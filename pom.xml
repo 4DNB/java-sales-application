@@ -16,7 +16,7 @@
 	<description>Parent aggregator for Sales Microservices Platform</description>
 
 	<modules>
-		<module>user-service</module>
+		<module>backend/user-service</module>
 	</modules>
 
 	<properties>
