@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
+import ProductsPage from './modules/products/ProductsPage'
 import './App.css'
 
 type User = {
@@ -20,6 +21,7 @@ const emptyForm = {
 }
 
 function App() {
+  const [activeModule, setActiveModule] = useState<'users' | 'products'>('users')
   const [users, setUsers] = useState<User[]>([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -98,12 +100,31 @@ function App() {
       <header className="header">
         <div>
           <p className="eyebrow">Sales application</p>
-          <h1>User management</h1>
+          <h1>{activeModule === 'users' ? 'User management' : 'Product management'}</h1>
         </div>
-        <span className="count">{users.length} users</span>
+        {activeModule === 'users' && <span className="count">{users.length} users</span>}
       </header>
 
-      <section className="layout">
+      <nav className="module-nav" aria-label="Application modules">
+        <button
+          type="button"
+          className={activeModule === 'users' ? 'module-tab active' : 'module-tab'}
+          aria-pressed={activeModule === 'users'}
+          onClick={() => setActiveModule('users')}
+        >
+          Users
+        </button>
+        <button
+          type="button"
+          className={activeModule === 'products' ? 'module-tab active' : 'module-tab'}
+          aria-pressed={activeModule === 'products'}
+          onClick={() => setActiveModule('products')}
+        >
+          Products
+        </button>
+      </nav>
+
+      {activeModule === 'users' ? <section className="layout">
         <aside className="panel form-panel">
           <h2>{editingId ? 'Edit user' : 'New user'}</h2>
           <form onSubmit={submit}>
@@ -173,7 +194,7 @@ function App() {
             </div>
           )}
         </section>
-      </section>
+      </section> : <ProductsPage />}
     </main>
   )
 }

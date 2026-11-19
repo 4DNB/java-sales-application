@@ -1,0 +1,36 @@
+.products-layout .form-panel form {
+  margin-top: 18px;
+}
+
+.products-layout .table-heading {
+  align-items: flex-start;
+}
+
+.table-subtitle {
+  margin: 5px 0 0;
+  color: #8892a5;
+  font-size: 13px;
+}
+
+.product-number-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.product-description {
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.products-layout button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+@media (max-width: 480px) {
+  .product-number-fields {
+    grid-template-columns: 1fr;
+  }
+}
