@@ -17,6 +17,7 @@
 
 	<modules>
 		<module>backend/user-service</module>
+		<module>backend/products</module>
 	</modules>
 
 	<properties>
