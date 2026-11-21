@@ -52,10 +52,10 @@ function ProductsPage() {
     setError('')
     try {
       const response = await fetch(apiUrl)
-      if (!response.ok) throw new Error(await getErrorMessage(response, 'Could not load products'))
+      if (!response.ok) throw new Error(await getErrorMessage(response, 'No se pudieron cargar los productos'))
       setProducts(await response.json() as Product[])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load products')
+      setError(err instanceof Error ? err.message : 'No se pudieron cargar los productos')
     } finally {
       setLoading(false)
     }
@@ -65,12 +65,12 @@ function ProductsPage() {
     const controller = new AbortController()
     fetch(apiUrl, { signal: controller.signal })
       .then(async (response) => {
-        if (!response.ok) throw new Error(await getErrorMessage(response, 'Could not load products'))
+        if (!response.ok) throw new Error(await getErrorMessage(response, 'No se pudieron cargar los productos'))
         setProducts(await response.json() as Product[])
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === 'AbortError') return
-        setError(err instanceof Error ? err.message : 'Could not load products')
+        setError(err instanceof Error ? err.message : 'No se pudieron cargar los productos')
       })
       .finally(() => setLoading(false))
 
@@ -92,12 +92,12 @@ function ProductsPage() {
           stock: Number(form.stock),
         }),
       })
-      if (!response.ok) throw new Error(await getErrorMessage(response, 'Could not save product'))
+      if (!response.ok) throw new Error(await getErrorMessage(response, 'No se pudo guardar el producto'))
       setForm(emptyForm)
       setEditingId(null)
       await loadProducts()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save product')
+      setError(err instanceof Error ? err.message : 'No se pudo guardar el producto')
     } finally {
       setSaving(false)
     }
@@ -123,20 +123,20 @@ function ProductsPage() {
     setError('')
     try {
       const response = await fetch(`${apiUrl}/${id}`, { method: 'DELETE' })
-      if (!response.ok) throw new Error(await getErrorMessage(response, 'Could not delete product'))
+      if (!response.ok) throw new Error(await getErrorMessage(response, 'No se pudo eliminar el producto'))
       await loadProducts()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not delete product')
+      setError(err instanceof Error ? err.message : 'No se pudo eliminar el producto')
     }
   }
 
   return (
     <section className="layout products-layout">
       <aside className="panel form-panel">
-        <h2>{editingId ? 'Edit product' : 'New product'}</h2>
+        <h2>{editingId ? 'Editar producto' : 'Nuevo producto'}</h2>
         <form onSubmit={submit}>
           <label>
-            Name
+            Nombre
             <input
               value={form.name}
               onChange={(event) => setForm({ ...form, name: event.target.value })}
@@ -146,7 +146,7 @@ function ProductsPage() {
             />
           </label>
           <label>
-            Description
+            Descripción
             <textarea
               value={form.description}
               onChange={(event) => setForm({ ...form, description: event.target.value })}
@@ -156,7 +156,7 @@ function ProductsPage() {
           </label>
           <div className="product-number-fields">
             <label>
-              Price
+              Precio
               <input
                 type="number"
                 value={form.price}
@@ -167,7 +167,7 @@ function ProductsPage() {
               />
             </label>
             <label>
-              Stock
+              Inventario
               <input
                 type="number"
                 value={form.stock}
@@ -180,11 +180,11 @@ function ProductsPage() {
           </div>
           <div className="actions">
             <button type="submit" className="primary" disabled={saving}>
-              {saving ? 'Saving...' : editingId ? 'Update product' : 'Create product'}
+              {saving ? 'Guardando...' : editingId ? 'Actualizar producto' : 'Crear producto'}
             </button>
             {editingId && (
               <button type="button" className="secondary" onClick={cancelEdit} disabled={saving}>
-                Cancel
+                Cancelar
               </button>
             )}
           </div>
@@ -194,23 +194,23 @@ function ProductsPage() {
       <section className="panel table-panel">
         <div className="table-heading">
           <div>
-            <h2>Products</h2>
-            <p className="table-subtitle">{products.length} items in catalog</p>
+            <h2>Productos</h2>
+            <p className="table-subtitle">{products.length} productos en el catálogo</p>
           </div>
           <button type="button" className="secondary" onClick={() => void loadProducts()} disabled={loading}>
-            Refresh
+            Actualizar
           </button>
         </div>
         {error && <div className="error" role="alert">{error}</div>}
         {loading ? (
-          <p className="empty">Loading products...</p>
+          <p className="empty">Cargando productos...</p>
         ) : products.length === 0 ? (
-          <p className="empty">No products yet. Add the first product to your catalog.</p>
+          <p className="empty">Aún no hay productos. Añade el primer producto al catálogo.</p>
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>Product</th><th>Description</th><th>Price</th><th>Stock</th><th></th></tr>
+                <tr><th>Producto</th><th>Descripción</th><th>Precio</th><th>Inventario</th><th></th></tr>
               </thead>
               <tbody>
                 {products.map((product) => (
@@ -220,8 +220,8 @@ function ProductsPage() {
                     <td className="stock-value">{product.price.toFixed(2)}</td>
                     <td className="stock-value">{product.stock}</td>
                     <td className="row-actions">
-                      <button type="button" onClick={() => editProduct(product)}>Edit</button>
-                      <button type="button" className="danger" onClick={() => void deleteProduct(product.id)}>Delete</button>
+                      <button type="button" onClick={() => editProduct(product)}>Editar</button>
+                      <button type="button" className="danger" onClick={() => void deleteProduct(product.id)}>Eliminar</button>
                     </td>
                   </tr>
                 ))}

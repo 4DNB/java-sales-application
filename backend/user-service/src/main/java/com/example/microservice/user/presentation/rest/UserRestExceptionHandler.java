@@ -21,7 +21,7 @@ public class UserRestExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex, HttpServletRequest request) {
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                "No encontrado",
                 ex.getMessage(),
                 request.getRequestURI()
         );
@@ -32,7 +32,7 @@ public class UserRestExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUserAlreadyExists(UserAlreadyExistsException ex, HttpServletRequest request) {
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
+                "Conflicto",
                 ex.getMessage(),
                 request.getRequestURI()
         );
@@ -43,7 +43,7 @@ public class UserRestExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidUserData(InvalidUserDataException ex, HttpServletRequest request) {
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Solicitud incorrecta",
                 ex.getMessage(),
                 request.getRequestURI()
         );
@@ -58,8 +58,8 @@ public class UserRestExceptionHandler {
 
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
-                "Validation Error",
-                "Input validation failed",
+                "Error de validación",
+                "La validación de los datos falló",
                 request.getRequestURI(),
                 details
         );
@@ -70,8 +70,8 @@ public class UserRestExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred",
+                "Error interno del servidor",
+                ex.getMessage() != null ? ex.getMessage() : "Ocurrió un error inesperado",
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);

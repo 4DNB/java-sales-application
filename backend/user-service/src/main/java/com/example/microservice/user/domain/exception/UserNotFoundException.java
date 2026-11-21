@@ -2,7 +2,7 @@ package com.example.microservice.user.domain.exception;
 
 public class UserNotFoundException extends DomainException {
     public UserNotFoundException(Long id) {
-        super("User not found with id: " + id);
+        super("Usuario no encontrado con el identificador: " + id);
     }
 
     public UserNotFoundException(String message) {

@@ -28,7 +28,7 @@ public class ProductService {
 
     public ProductEntity findById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Producto no encontrado"));
     }
 
     public ProductEntity update(Long id, String name, String description, BigDecimal price, Integer stock) {

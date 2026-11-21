@@ -7,12 +7,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record UpdateUserRequest(
-        @NotBlank(message = "Name cannot be empty")
-        @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+        @NotBlank(message = "El nombre no puede estar vacío")
+        @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 y 100 caracteres")
         String name,
 
-        @NotBlank(message = "Email cannot be empty")
-        @Email(message = "Invalid email format")
+        @NotBlank(message = "El correo electrónico no puede estar vacío")
+        @Email(message = "El formato del correo electrónico no es válido")
         String email,
 
         UserRole role,

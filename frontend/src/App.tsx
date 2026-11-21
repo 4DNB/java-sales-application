@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import ProductsPage from './modules/products/ProductsPage'
 import LoginPage from './modules/auth/LoginPage'
+import LandingPage from './modules/landing/LandingPage'
 import './App.css'
 
 type User = {
@@ -22,6 +23,7 @@ const emptyForm = {
 }
 
 function App() {
+  const [publicView, setPublicView] = useState<'landing' | 'login'>('landing')
   const [currentUser, setCurrentUser] = useState<{ email: string; name: string } | null>(() => {
     const storedSession = localStorage.getItem('sales-app-session')
     return storedSession ? JSON.parse(storedSession) as { email: string; name: string } : null
@@ -38,10 +40,10 @@ function App() {
     setError('')
     try {
       const response = await fetch(apiUrl)
-      if (!response.ok) throw new Error('Could not load users')
+      if (!response.ok) throw new Error('No se pudieron cargar los usuarios')
       setUsers(await response.json())
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load users')
+      setError(err instanceof Error ? err.message : 'No se pudieron cargar los usuarios')
     } finally {
       setLoading(false)
     }
@@ -51,12 +53,12 @@ function App() {
     const controller = new AbortController()
     fetch(apiUrl, { signal: controller.signal })
       .then(async (response) => {
-        if (!response.ok) throw new Error('Could not load users')
+        if (!response.ok) throw new Error('No se pudieron cargar los usuarios')
         setUsers(await response.json())
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === 'AbortError') return
-        setError(err instanceof Error ? err.message : 'Could not load users')
+        setError(err instanceof Error ? err.message : 'No se pudieron cargar los usuarios')
       })
       .finally(() => setLoading(false))
 
@@ -74,13 +76,13 @@ function App() {
       })
       if (!response.ok) {
         const body = await response.json().catch(() => null)
-        throw new Error(body?.message || 'Could not save user')
+        throw new Error(body?.message || 'No se pudo guardar el usuario')
       }
       setForm(emptyForm)
       setEditingId(null)
       await loadUsers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save user')
+      setError(err instanceof Error ? err.message : 'No se pudo guardar el usuario')
     }
   }
 
@@ -93,10 +95,10 @@ function App() {
     setError('')
     try {
       const response = await fetch(`${apiUrl}/${id}`, { method: 'DELETE' })
-      if (!response.ok) throw new Error('Could not delete user')
+      if (!response.ok) throw new Error('No se pudo eliminar el usuario')
       await loadUsers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not delete user')
+      setError(err instanceof Error ? err.message : 'No se pudo eliminar el usuario')
     }
   }
 
@@ -112,30 +114,33 @@ function App() {
   }
 
   if (!currentUser) {
-    return <LoginPage onLogin={login} />
+    if (publicView === 'login') {
+      return <LoginPage onLogin={login} onBack={() => setPublicView('landing')} />
+    }
+    return <LandingPage onLogin={() => setPublicView('login')} />
   }
 
   return (
     <main className="app">
       <header className="header">
         <div>
-          <p className="eyebrow">Sales application</p>
-          <h1>{activeModule === 'users' ? 'User management' : 'Product management'}</h1>
+          <p className="eyebrow">Aplicación de ventas</p>
+          <h1>{activeModule === 'users' ? 'Gestión de usuarios' : 'Gestión de productos'}</h1>
         </div>
         <div className="header-actions">
-          {activeModule === 'users' && <span className="count">{users.length} users</span>}
-          <button type="button" className="logout-button" onClick={logout}>Sign out</button>
+          {activeModule === 'users' && <span className="count">{users.length} usuarios</span>}
+          <button type="button" className="logout-button" onClick={logout}>Cerrar sesión</button>
         </div>
       </header>
 
-      <nav className="module-nav" aria-label="Application modules">
+      <nav className="module-nav" aria-label="Módulos de la aplicación">
         <button
           type="button"
           className={activeModule === 'users' ? 'module-tab active' : 'module-tab'}
           aria-pressed={activeModule === 'users'}
           onClick={() => setActiveModule('users')}
         >
-          Users
+          Usuarios
         </button>
         <button
           type="button"
@@ -143,41 +148,41 @@ function App() {
           aria-pressed={activeModule === 'products'}
           onClick={() => setActiveModule('products')}
         >
-          Products
+          Productos
         </button>
       </nav>
 
       {activeModule === 'users' ? <section className="layout">
         <aside className="panel form-panel">
-          <h2>{editingId ? 'Edit user' : 'New user'}</h2>
+          <h2>{editingId ? 'Editar usuario' : 'Nuevo usuario'}</h2>
           <form onSubmit={submit}>
-            <label>Name
+            <label>Nombre
               <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required minLength={2} maxLength={100} />
             </label>
-            <label>Email
+            <label>Correo electrónico
               <input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required />
             </label>
-            <label>Role
+            <label>Rol
               <select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value as User['role'] })}>
-                <option value="CUSTOMER">Customer</option>
-                <option value="SELLER">Seller</option>
-                <option value="MANAGER">Manager</option>
-                <option value="ADMIN">Admin</option>
+                <option value="CUSTOMER">Cliente</option>
+                <option value="SELLER">Vendedor</option>
+                <option value="MANAGER">Gerente</option>
+                <option value="ADMIN">Administrador</option>
               </select>
             </label>
             {editingId && (
-              <label>Status
+              <label>Estado
                 <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as User['status'] })}>
-                  <option value="ACTIVE">Active</option>
-                  <option value="INACTIVE">Inactive</option>
-                  <option value="SUSPENDED">Suspended</option>
+                  <option value="ACTIVE">Activo</option>
+                  <option value="INACTIVE">Inactivo</option>
+                  <option value="SUSPENDED">Suspendido</option>
                 </select>
               </label>
             )}
             <div className="actions">
-              <button type="submit" className="primary">{editingId ? 'Update user' : 'Create user'}</button>
+              <button type="submit" className="primary">{editingId ? 'Actualizar usuario' : 'Crear usuario'}</button>
               {editingId && (
-                <button type="button" className="secondary" onClick={() => { setEditingId(null); setForm(emptyForm) }}>Cancel</button>
+                <button type="button" className="secondary" onClick={() => { setEditingId(null); setForm(emptyForm) }}>Cancelar</button>
               )}
             </div>
           </form>
@@ -185,30 +190,30 @@ function App() {
 
         <section className="panel table-panel">
           <div className="table-heading">
-            <h2>Users</h2>
-            <button type="button" className="secondary" onClick={() => void loadUsers()}>Refresh</button>
+            <h2>Usuarios</h2>
+            <button type="button" className="secondary" onClick={() => void loadUsers()}>Actualizar</button>
           </div>
           {error && <div className="error">{error}</div>}
           {loading ? (
-            <p className="empty">Loading users...</p>
+            <p className="empty">Cargando usuarios...</p>
           ) : users.length === 0 ? (
-            <p className="empty">No users yet. Create the first one.</p>
+            <p className="empty">Aún no hay usuarios. Crea el primero.</p>
           ) : (
             <div className="table-wrap">
               <table>
                 <thead>
-                  <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr>
+                  <tr><th>Nombre</th><th>Correo electrónico</th><th>Rol</th><th>Estado</th><th></th></tr>
                 </thead>
                 <tbody>
                   {users.map((user) => (
                     <tr key={user.id}>
                       <td><strong>{user.name}</strong></td>
                       <td>{user.email}</td>
-                      <td><span className="badge">{user.role}</span></td>
-                      <td><span className={`status ${user.status.toLowerCase()}`}>{user.status}</span></td>
+                      <td><span className="badge">{{ ADMIN: 'Administrador', CUSTOMER: 'Cliente', SELLER: 'Vendedor', MANAGER: 'Gerente' }[user.role]}</span></td>
+                      <td><span className={`status ${user.status.toLowerCase()}`}>{({ ACTIVE: 'Activo', INACTIVE: 'Inactivo', SUSPENDED: 'Suspendido' } as const)[user.status]}</span></td>
                       <td className="row-actions">
-                        <button type="button" onClick={() => editUser(user)}>Edit</button>
-                        <button type="button" className="danger" onClick={() => void deleteUser(user.id)}>Delete</button>
+                        <button type="button" onClick={() => editUser(user)}>Editar</button>
+                        <button type="button" className="danger" onClick={() => void deleteUser(user.id)}>Eliminar</button>
                       </td>
                     </tr>
                   ))}

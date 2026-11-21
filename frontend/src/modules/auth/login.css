@@ -97,6 +97,15 @@
   gap: 18px;
 }
 
+.back-to-store {
+  justify-self: start;
+  margin-bottom: -4px;
+  padding: 6px 0;
+  background: transparent;
+  color: #65718a;
+  font-size: 13px;
+}
+
 .login-heading {
   margin-bottom: 12px;
 }

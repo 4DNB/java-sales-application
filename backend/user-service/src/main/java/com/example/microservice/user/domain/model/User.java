@@ -79,19 +79,19 @@ public class User {
 
     private static void validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new InvalidUserDataException("User name cannot be empty");
+            throw new InvalidUserDataException("El nombre de usuario no puede estar vacío");
         }
         if (name.trim().length() < 2 || name.trim().length() > 100) {
-            throw new InvalidUserDataException("User name must be between 2 and 100 characters");
+            throw new InvalidUserDataException("El nombre de usuario debe tener entre 2 y 100 caracteres");
         }
     }
 
     private static void validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
-            throw new InvalidUserDataException("Email cannot be empty");
+            throw new InvalidUserDataException("El correo electrónico no puede estar vacío");
         }
         if (!EMAIL_PATTERN.matcher(email.trim()).matches()) {
-            throw new InvalidUserDataException("Invalid email format: " + email);
+            throw new InvalidUserDataException("Formato de correo electrónico no válido: " + email);
         }
     }
 

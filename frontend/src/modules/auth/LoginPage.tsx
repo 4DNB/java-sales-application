@@ -4,6 +4,7 @@ import './login.css'
 
 type LoginPageProps = {
   onLogin: (email: string, name: string) => void
+  onBack?: () => void
 }
 
 type LoginUser = {
@@ -15,7 +16,7 @@ type LoginUser = {
 const DEMO_EMAIL = 'admin@sales.com'
 const DEMO_PASSWORD = 'admin123'
 
-function LoginPage({ onLogin }: LoginPageProps) {
+function LoginPage({ onLogin, onBack }: LoginPageProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
@@ -28,7 +29,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
     setError('')
 
     if (password.length < 6) {
-      setError('Password must contain at least 6 characters.')
+      setError('La contraseña debe contener al menos 6 caracteres.')
       return
     }
 
@@ -42,20 +43,20 @@ function LoginPage({ onLogin }: LoginPageProps) {
 
       if (!isDemoAccount) {
         const response = await fetch('/api/v1/users')
-        if (!response.ok) throw new Error('Could not verify the account')
+        if (!response.ok) throw new Error('No se pudo verificar la cuenta')
         const users = await response.json() as LoginUser[]
         matchedUser = users.find(
           (user) => user.email.toLowerCase() === normalizedEmail,
         )
-        if (!matchedUser) throw new Error('No account found with that email.')
+        if (!matchedUser) throw new Error('No se encontró ninguna cuenta con ese correo electrónico.')
         if (matchedUser.status !== 'ACTIVE') {
-          throw new Error('This account is inactive or suspended.')
+          throw new Error('Esta cuenta está inactiva o suspendida.')
         }
       }
 
-      onLogin(normalizedEmail, matchedUser?.name || 'Administrator')
+      onLogin(normalizedEmail, matchedUser?.name || 'Administrador')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not sign in')
+      setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión')
     } finally {
       setLoading(false)
     }
@@ -69,59 +70,64 @@ function LoginPage({ onLogin }: LoginPageProps) {
 
   return (
     <main className="login-page">
-      <section className="login-brand" aria-label="Sales application">
+      <section className="login-brand" aria-label="Aplicación de ventas">
         <div className="brand-mark" aria-hidden="true">
           <span></span>
           <span></span>
           <span></span>
         </div>
-        <p className="brand-name">SALES<span>APP</span></p>
+        <p className="brand-name">VENTAS<span>APP</span></p>
         <div className="brand-copy">
-          <p>MANAGEMENT SUITE</p>
-          <h1>Manage every sale.<br />One clear view.</h1>
+          <p>SUITE DE GESTIÓN</p>
+          <h1>Gestiona cada venta.<br />Una vista clara.</h1>
         </div>
       </section>
 
       <section className="login-panel">
         <form className="login-card" onSubmit={submit}>
+          {onBack && (
+            <button type="button" className="back-to-store" onClick={onBack}>
+              ← Volver a la tienda
+            </button>
+          )}
           <div className="login-heading">
-            <p>WELCOME BACK</p>
-            <h2>Sign in</h2>
+            <p>BIENVENIDO DE NUEVO</p>
+            <h2>Iniciar sesión</h2>
           </div>
 
           {error && <div className="login-error" role="alert">{error}</div>}
 
           <label>
-            Email address
+            Correo electrónico
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="name@company.com"
+              placeholder="nombre@empresa.com"
               autoComplete="email"
               required
             />
           </label>
 
           <label>
-            Password
+            Contraseña
             <div className="password-field">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Enter your password"
+                placeholder="Introduce tu contraseña"
                 autoComplete="current-password"
                 required
               />
               <button
                 type="button"
                 className="show-password"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 aria-pressed={showPassword}
                 onClick={() => setShowPassword((visible) => !visible)}
               >
-                {showPassword ? 'Hide' : 'Show'}
+                {showPassword ? 'Ocultar' : 'Mostrar'}
               </button>
             </div>
           </label>
@@ -133,17 +139,17 @@ function LoginPage({ onLogin }: LoginPageProps) {
                 checked={rememberMe}
                 onChange={(event) => setRememberMe(event.target.checked)}
               />
-              Remember me
+              Recordarme
             </label>
-            <button type="button" className="forgot-button">Forgot password?</button>
+            <button type="button" className="forgot-button">¿Olvidaste tu contraseña?</button>
           </div>
 
           <button type="submit" className="login-submit" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
           </button>
 
           <button type="button" className="demo-button" onClick={fillDemoAccount}>
-            Use demo account
+            Usar cuenta de demostración
           </button>
         </form>
       </section>

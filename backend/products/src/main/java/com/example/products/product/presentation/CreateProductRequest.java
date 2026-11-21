@@ -10,20 +10,20 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 public record CreateProductRequest(
-        @NotBlank(message = "Name cannot be empty")
-        @Size(min = 2, max = 150, message = "Name must be between 2 and 150 characters")
+        @NotBlank(message = "El nombre no puede estar vacío")
+        @Size(min = 2, max = 150, message = "El nombre debe tener entre 2 y 150 caracteres")
         String name,
 
-        @Size(max = 1000, message = "Description cannot exceed 1000 characters")
+        @Size(max = 1000, message = "La descripción no puede superar los 1000 caracteres")
         String description,
 
-        @NotNull(message = "Price is required")
-        @DecimalMin(value = "0.00", message = "Price cannot be negative")
-        @Digits(integer = 10, fraction = 2, message = "Price must have at most 10 integer and 2 decimal digits")
+        @NotNull(message = "El precio es obligatorio")
+        @DecimalMin(value = "0.00", message = "El precio no puede ser negativo")
+        @Digits(integer = 10, fraction = 2, message = "El precio debe tener como máximo 10 dígitos enteros y 2 decimales")
         BigDecimal price,
 
-        @NotNull(message = "Stock is required")
-        @Min(value = 0, message = "Stock cannot be negative")
+        @NotNull(message = "El inventario es obligatorio")
+        @Min(value = 0, message = "El inventario no puede ser negativo")
         Integer stock
 ) {
 }
