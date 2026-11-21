@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
+import { formatPenCurrency } from '../../utils/currency'
 import './products.css'
 
 type Product = {
@@ -261,7 +262,7 @@ function ProductsPage() {
                       </div>
                     </td>
                     <td className="product-description">{product.description || '—'}</td>
-                    <td className="stock-value">{product.price.toFixed(2)}</td>
+                    <td className="stock-value">{formatPenCurrency(product.price)}</td>
                     <td className="stock-value">{product.stock}</td>
                     <td className="row-actions">
                       <button type="button" onClick={() => editProduct(product)}>Editar</button>

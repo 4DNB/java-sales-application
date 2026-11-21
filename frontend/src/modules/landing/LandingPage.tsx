@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { formatPenCurrency } from '../../utils/currency'
 import './landing.css'
 
 type Product = {
@@ -108,7 +109,7 @@ function LandingPage({ onLogin }: LandingPageProps) {
                 <div className="product-card-copy">
                   <div className="product-card-heading">
                     <h3>{product.name}</h3>
-                    <strong>{product.price.toFixed(2)} €</strong>
+                    <strong>{formatPenCurrency(product.price)}</strong>
                   </div>
                   <p>{product.description || 'Producto disponible en nuestro catálogo.'}</p>
                   <span className={product.stock > 0 ? 'stock available' : 'stock unavailable'}>
