@@ -14,6 +14,12 @@ type User = {
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
 }
 
+type Session = {
+  email: string
+  name: string
+  role: User['role']
+}
+
 const apiUrl = '/api/v1/users'
 
 const emptyForm = {
@@ -24,10 +30,23 @@ const emptyForm = {
 }
 
 function App() {
-  const [publicView, setPublicView] = useState<'landing' | 'login' | 'register'>('landing')
-  const [currentUser, setCurrentUser] = useState<{ email: string; name: string } | null>(() => {
+  const [publicView, setPublicView] = useState<'landing' | 'login' | 'register' | 'management'>('landing')
+  const [currentUser, setCurrentUser] = useState<Session | null>(() => {
     const storedSession = localStorage.getItem('sales-app-session')
-    return storedSession ? JSON.parse(storedSession) as { email: string; name: string } : null
+    if (!storedSession) return null
+    try {
+      const session = JSON.parse(storedSession) as Partial<Session>
+      if (typeof session.email !== 'string' || typeof session.name !== 'string') return null
+      const roles: User['role'][] = ['ADMIN', 'CUSTOMER', 'SELLER', 'MANAGER']
+      return {
+        email: session.email,
+        name: session.name,
+        role: roles.includes(session.role as User['role']) ? session.role as User['role'] : 'CUSTOMER',
+      }
+    } catch {
+      localStorage.removeItem('sales-app-session')
+      return null
+    }
   })
   const [activeModule, setActiveModule] = useState<'users' | 'products'>('users')
   const [users, setUsers] = useState<User[]>([])
@@ -51,6 +70,10 @@ function App() {
   }
 
   useEffect(() => {
+    if (!currentUser || currentUser.role === 'CUSTOMER' || publicView !== 'management') {
+      return
+    }
+
     const controller = new AbortController()
     fetch(apiUrl, { signal: controller.signal })
       .then(async (response) => {
@@ -64,7 +87,7 @@ function App() {
       .finally(() => setLoading(false))
 
     return () => controller.abort()
-  }, [])
+  }, [currentUser, publicView])
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
@@ -103,15 +126,17 @@ function App() {
     }
   }
 
-  const login = (email: string, name: string) => {
-    const session = { email, name }
+  const login = (email: string, name: string, role: User['role']) => {
+    const session = { email, name, role }
     localStorage.setItem('sales-app-session', JSON.stringify(session))
     setCurrentUser(session)
+    setPublicView('landing')
   }
 
   const logout = () => {
     localStorage.removeItem('sales-app-session')
     setCurrentUser(null)
+    setPublicView('landing')
   }
 
   if (!currentUser) {
@@ -122,6 +147,18 @@ function App() {
       return <RegisterPage onRegister={() => setPublicView('landing')} onBack={() => setPublicView('landing')} onLogin={() => setPublicView('login')} />
     }
     return <LandingPage onLogin={() => setPublicView('login')} onRegister={() => setPublicView('register')} />
+  }
+
+  if (publicView === 'landing' || currentUser.role === 'CUSTOMER') {
+    return (
+      <LandingPage
+        onLogin={() => setPublicView('login')}
+        onRegister={() => setPublicView('register')}
+        currentUser={currentUser}
+        onManage={currentUser.role === 'CUSTOMER' ? undefined : () => setPublicView('management')}
+        onLogout={logout}
+      />
+    )
   }
 
   return (

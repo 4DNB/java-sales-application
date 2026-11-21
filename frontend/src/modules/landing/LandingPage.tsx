@@ -11,15 +11,34 @@ type Product = {
   imageUrl: string | null
 }
 
+type CustomerSession = {
+  email: string
+  name: string
+  role: 'ADMIN' | 'CUSTOMER' | 'SELLER' | 'MANAGER'
+}
+
 type LandingPageProps = {
   onLogin: () => void
   onRegister: () => void
+  currentUser?: CustomerSession
+  onManage?: () => void
+  onLogout?: () => void
 }
 
-function LandingPage({ onLogin, onRegister }: LandingPageProps) {
+function LandingPage({ onLogin, onRegister, currentUser, onManage, onLogout }: LandingPageProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [cart, setCart] = useState<Record<number, number>>({})
+  const [checkoutError, setCheckoutError] = useState('')
+  const [checkoutMessage, setCheckoutMessage] = useState('')
+  const [checkingOut, setCheckingOut] = useState(false)
+  const isCustomer = currentUser?.role === 'CUSTOMER'
+  const cartItems = products.filter((product) => (cart[product.id] ?? 0) > 0)
+  const cartTotal = cartItems.reduce(
+    (total, product) => total + product.price * cart[product.id],
+    0,
+  )
 
   useEffect(() => {
     const controller = new AbortController()
@@ -42,6 +61,71 @@ function LandingPage({ onLogin, onRegister }: LandingPageProps) {
     document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const addToCart = (product: Product) => {
+    setCheckoutError('')
+    setCheckoutMessage('')
+    setCart((current) => {
+      const quantity = current[product.id] ?? 0
+      if (quantity >= product.stock) return current
+      return { ...current, [product.id]: quantity + 1 }
+    })
+  }
+
+  const changeCartQuantity = (product: Product, change: number) => {
+    setCheckoutError('')
+    setCheckoutMessage('')
+    setCart((current) => {
+      const quantity = (current[product.id] ?? 0) + change
+      if (quantity <= 0) {
+        const next = { ...current }
+        delete next[product.id]
+        return next
+      }
+      if (quantity > product.stock) return current
+      return { ...current, [product.id]: quantity }
+    })
+  }
+
+  const checkout = async () => {
+    if (!currentUser || !isCustomer || cartItems.length === 0) return
+    setCheckingOut(true)
+    setCheckoutError('')
+    setCheckoutMessage('')
+    try {
+      const response = await fetch('/api/v1/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: currentUser.name,
+          customerEmail: currentUser.email,
+          items: cartItems.map((product) => ({
+            productId: product.id,
+            quantity: cart[product.id],
+          })),
+        }),
+      })
+      if (!response.ok) {
+        const body: unknown = await response.json().catch(() => null)
+        const message =
+          typeof body === 'object' && body !== null && 'detail' in body && typeof body.detail === 'string'
+            ? body.detail
+            : 'No se pudo completar la compra. Inténtalo de nuevo.'
+        throw new Error(message)
+      }
+      const order = await response.json() as { id: number }
+      setProducts((current) => current.map((product) => ({
+        ...product,
+        stock: product.stock - (cart[product.id] ?? 0),
+      })))
+      setCart({})
+      setCheckoutMessage(`Compra confirmada. Número de pedido: ${order.id}.`)
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : 'No se pudo completar la compra')
+    } finally {
+      setCheckingOut(false)
+    }
+  }
+
   return (
     <main className="landing-page">
       <header className="landing-header">
@@ -53,10 +137,22 @@ function LandingPage({ onLogin, onRegister }: LandingPageProps) {
         </a>
         <nav className="landing-nav" aria-label="Navegación principal">
           <button type="button" onClick={scrollToCatalog}>Catálogo</button>
-          <button type="button" onClick={onRegister}>Registrarse</button>
-          <button type="button" className="landing-login" onClick={onLogin}>
-            Iniciar sesión
-          </button>
+          {currentUser ? (
+            <>
+              <span className="landing-user">Hola, {currentUser.name}</span>
+              {onManage && <button type="button" onClick={onManage}>Panel de gestión</button>}
+              <button type="button" className="landing-login" onClick={onLogout}>
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <button type="button" onClick={onRegister}>Registrarse</button>
+              <button type="button" className="landing-login" onClick={onLogin}>
+                Iniciar sesión
+              </button>
+            </>
+          )}
         </nav>
       </header>
 
@@ -117,10 +213,69 @@ function LandingPage({ onLogin, onRegister }: LandingPageProps) {
                   <span className={product.stock > 0 ? 'stock available' : 'stock unavailable'}>
                     {product.stock > 0 ? `${product.stock} disponibles` : 'Agotado'}
                   </span>
+                  {isCustomer ? (
+                    <button
+                      type="button"
+                      className="product-buy-button"
+                      onClick={() => addToCart(product)}
+                      disabled={product.stock <= (cart[product.id] ?? 0)}
+                    >
+                      {product.stock <= (cart[product.id] ?? 0) ? 'Máximo disponible' : 'Añadir al carrito'}
+                    </button>
+                  ) : !currentUser ? (
+                    <button type="button" className="product-buy-button" onClick={onLogin}>
+                      Inicia sesión para comprar
+                    </button>
+                  ) : null}
                 </div>
               </article>
             ))}
           </div>
+        )}
+
+        {isCustomer && (
+          <section className="cart-panel" aria-label="Carrito de compra">
+            <div className="cart-heading">
+              <div>
+                <p className="landing-eyebrow">TU COMPRA</p>
+                <h2>Carrito ({cartItems.reduce((count, product) => count + cart[product.id], 0)})</h2>
+              </div>
+              <strong>{formatPenCurrency(cartTotal)}</strong>
+            </div>
+            {cartItems.length === 0 ? (
+              <p className="cart-empty">Añade productos para empezar tu compra.</p>
+            ) : (
+              <ul className="cart-items">
+                {cartItems.map((product) => (
+                  <li key={product.id}>
+                    <span className="cart-product-name">{product.name}</span>
+                    <div className="cart-quantity">
+                      <button type="button" aria-label={`Quitar una unidad de ${product.name}`} onClick={() => changeCartQuantity(product, -1)}>−</button>
+                      <span>{cart[product.id]}</span>
+                      <button
+                        type="button"
+                        aria-label={`Añadir una unidad de ${product.name}`}
+                        onClick={() => changeCartQuantity(product, 1)}
+                        disabled={cart[product.id] >= product.stock}
+                      >+</button>
+                    </div>
+                    <strong>{formatPenCurrency(product.price * cart[product.id])}</strong>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {checkoutError && <div className="landing-error" role="alert">{checkoutError}</div>}
+            {checkoutMessage && <div className="checkout-success" role="status">{checkoutMessage}</div>}
+            <button
+              type="button"
+              className="checkout-button"
+              onClick={() => void checkout()}
+              disabled={cartItems.length === 0 || checkingOut}
+            >
+              {checkingOut ? 'Procesando...' : 'Confirmar compra'}
+            </button>
+            <p className="checkout-note">El pago no se procesa en esta versión.</p>
+          </section>
         )}
       </section>
     </main>

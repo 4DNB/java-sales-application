@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import './login.css'
 
 type LoginPageProps = {
-  onLogin: (email: string, name: string) => void
+  onLogin: (email: string, name: string, role: LoginUser['role']) => void
   onBack?: () => void
   onRegister?: () => void
 }
@@ -12,6 +12,7 @@ type LoginUser = {
   name: string
   email: string
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
+  role: 'ADMIN' | 'CUSTOMER' | 'SELLER' | 'MANAGER'
 }
 
 const DEMO_EMAIL = 'admin@sales.com'
@@ -55,7 +56,7 @@ function LoginPage({ onLogin, onBack, onRegister }: LoginPageProps) {
         }
       }
 
-      onLogin(normalizedEmail, matchedUser?.name || 'Administrador')
+      onLogin(normalizedEmail, matchedUser?.name || 'Administrador', matchedUser?.role || 'ADMIN')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión')
     } finally {

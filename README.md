@@ -2,7 +2,7 @@
 
 The project is separated into independent frontend and backend folders.
 
-- `frontend/`: React 19 + TypeScript + Vite UI for user and product management
+- `frontend/`: React 19 + TypeScript + Vite storefront, customer checkout, and management UI
 - `backend/user-service/`: Spring Boot 4 user microservice
 - `backend/products/`: Spring Boot product module with CRUD API and JPA persistence
 - `backend/module-explorer/`: React app with a simple endpoint list and draggable, plain-language flow trees
@@ -26,6 +26,7 @@ cd backend\products
 ```
 
 The products API runs at `http://localhost:8082/api/v1/products`. On startup, Hibernate creates or updates the `products` table in the configured PostgreSQL database. By default, it uses `sales_user_db`; set `PRODUCT_DB_URL`, `PRODUCT_DB_USERNAME`, and `PRODUCT_DB_PASSWORD` to use a dedicated database.
+Customer checkouts are recorded at `http://localhost:8082/api/v1/orders` and reduce product inventory. Payment processing is not included.
 
 Open the local URL printed by Vite to browse the backend service catalog.
 

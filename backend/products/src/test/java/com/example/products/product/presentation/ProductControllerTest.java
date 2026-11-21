@@ -76,4 +76,61 @@ class ProductControllerTest {
                                 """))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void createsOrderAndDecrementsStockWithoutOverselling() throws Exception {
+        MvcResult productResult = mockMvc.perform(post("/api/v1/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Notebook","price":5.00,"stock":3}
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+        long productId = objectMapper.readTree(productResult.getResponse().getContentAsString()).get("id").asLong();
+
+        mockMvc.perform(post("/api/v1/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"customerName":"Taylor Customer","customerEmail":"taylor@example.com",
+                                 "items":[{"productId":%d,"quantity":2}]}
+                                """.formatted(productId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.total", is(10.0)))
+                .andExpect(jsonPath("$.items[0].quantity", is(2)));
+
+        mockMvc.perform(get("/api/v1/products/{id}", productId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stock", is(1)));
+
+        MvcResult secondProductResult = mockMvc.perform(post("/api/v1/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Pen","price":2.00,"stock":3}
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+        long secondProductId = objectMapper.readTree(secondProductResult.getResponse().getContentAsString())
+                .get("id").asLong();
+
+        mockMvc.perform(post("/api/v1/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"customerName":"Taylor Customer","customerEmail":"taylor@example.com",
+                                 "items":[{"productId":%d,"quantity":1},{"productId":%d,"quantity":4}]}
+                                """.formatted(productId, secondProductId)))
+                .andExpect(status().isConflict());
+
+        mockMvc.perform(get("/api/v1/products/{id}", productId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stock", is(1)));
+
+        mockMvc.perform(get("/api/v1/products/{id}", secondProductId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stock", is(3)));
+
+        mockMvc.perform(delete("/api/v1/products/{id}", productId))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/v1/products/{id}", secondProductId))
+                .andExpect(status().isNoContent());
+    }
 }
