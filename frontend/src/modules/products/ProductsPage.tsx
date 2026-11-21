@@ -8,6 +8,7 @@ type Product = {
   description: string | null
   price: number
   stock: number
+  imageUrl: string | null
   createdAt: string
   updatedAt: string
 }
@@ -17,6 +18,7 @@ type ProductForm = {
   description: string
   price: string
   stock: string
+  imageUrl: string
 }
 
 const apiUrl = '/api/v1/products'
@@ -26,6 +28,7 @@ const emptyForm: ProductForm = {
   description: '',
   price: '',
   stock: '',
+  imageUrl: '',
 }
 
 async function getErrorMessage(response: Response, fallback: string) {
@@ -90,6 +93,7 @@ function ProductsPage() {
           description: form.description || null,
           price: Number(form.price),
           stock: Number(form.stock),
+          imageUrl: form.imageUrl || null,
         }),
       })
       if (!response.ok) throw new Error(await getErrorMessage(response, 'No se pudo guardar el producto'))
@@ -110,6 +114,7 @@ function ProductsPage() {
       description: product.description ?? '',
       price: String(product.price),
       stock: String(product.stock),
+      imageUrl: product.imageUrl ?? '',
     })
   }
 
@@ -178,6 +183,36 @@ function ProductsPage() {
               />
             </label>
           </div>
+          <label>
+            Imagen
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (!file) return
+                if (file.size > 2 * 1024 * 1024) {
+                  setError('La imagen no puede superar los 2 MB')
+                  event.target.value = ''
+                  return
+                }
+                const reader = new FileReader()
+                reader.onload = () => setForm((current) => ({
+                  ...current,
+                  imageUrl: typeof reader.result === 'string' ? reader.result : '',
+                }))
+                reader.readAsDataURL(file)
+              }}
+            />
+          </label>
+          {form.imageUrl && (
+            <div className="product-image-preview">
+              <img src={form.imageUrl} alt="Vista previa del producto" />
+              <button type="button" className="secondary" onClick={() => setForm({ ...form, imageUrl: '' })}>
+                Quitar imagen
+              </button>
+            </div>
+          )}
           <div className="actions">
             <button type="submit" className="primary" disabled={saving}>
               {saving ? 'Guardando...' : editingId ? 'Actualizar producto' : 'Crear producto'}
@@ -215,7 +250,16 @@ function ProductsPage() {
               <tbody>
                 {products.map((product) => (
                   <tr key={product.id}>
-                    <td><strong>{product.name}</strong></td>
+                    <td>
+                      <div className="product-table-name">
+                        {product.imageUrl ? (
+                          <img src={product.imageUrl} alt="" />
+                        ) : (
+                          <span className="product-table-placeholder">{product.name.charAt(0).toUpperCase()}</span>
+                        )}
+                        <strong>{product.name}</strong>
+                      </div>
+                    </td>
                     <td className="product-description">{product.description || '—'}</td>
                     <td className="stock-value">{product.price.toFixed(2)}</td>
                     <td className="stock-value">{product.stock}</td>

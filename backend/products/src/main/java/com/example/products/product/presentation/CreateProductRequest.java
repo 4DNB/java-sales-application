@@ -24,6 +24,9 @@ public record CreateProductRequest(
 
         @NotNull(message = "El inventario es obligatorio")
         @Min(value = 0, message = "El inventario no puede ser negativo")
-        Integer stock
+        Integer stock,
+
+        @Size(max = 4000000, message = "La imagen es demasiado grande")
+        String imageUrl
 ) {
 }

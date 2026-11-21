@@ -7,6 +7,7 @@ type Product = {
   description: string | null
   price: number
   stock: number
+  imageUrl: string | null
 }
 
 type LandingPageProps = {
@@ -98,7 +99,11 @@ function LandingPage({ onLogin }: LandingPageProps) {
             {products.map((product) => (
               <article className="product-card" key={product.id}>
                 <div className="product-art" aria-hidden="true">
-                  <span>{product.name.charAt(0).toUpperCase()}</span>
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt={product.name} />
+                  ) : (
+                    <span>{product.name.charAt(0).toUpperCase()}</span>
+                  )}
                 </div>
                 <div className="product-card-copy">
                   <div className="product-card-heading">

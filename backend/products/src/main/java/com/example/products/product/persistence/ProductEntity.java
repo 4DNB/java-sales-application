@@ -32,6 +32,9 @@ public class ProductEntity {
     @Column(nullable = false)
     private Integer stock;
 
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -41,11 +44,12 @@ public class ProductEntity {
     protected ProductEntity() {
     }
 
-    public ProductEntity(String name, String description, BigDecimal price, Integer stock) {
+    public ProductEntity(String name, String description, BigDecimal price, Integer stock, String imageUrl) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.stock = stock;
+        this.imageUrl = imageUrl;
     }
 
     @PrePersist
@@ -94,6 +98,14 @@ public class ProductEntity {
 
     public void setStock(Integer stock) {
         this.stock = stock;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public LocalDateTime getCreatedAt() {

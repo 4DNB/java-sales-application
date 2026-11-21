@@ -18,8 +18,8 @@ public class ProductService {
         this.repository = repository;
     }
 
-    public ProductEntity create(String name, String description, BigDecimal price, Integer stock) {
-        return repository.save(new ProductEntity(name, description, price, stock));
+    public ProductEntity create(String name, String description, BigDecimal price, Integer stock, String imageUrl) {
+        return repository.save(new ProductEntity(name, description, price, stock, imageUrl));
     }
 
     public List<ProductEntity> findAll() {
@@ -31,12 +31,13 @@ public class ProductService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Producto no encontrado"));
     }
 
-    public ProductEntity update(Long id, String name, String description, BigDecimal price, Integer stock) {
+    public ProductEntity update(Long id, String name, String description, BigDecimal price, Integer stock, String imageUrl) {
         ProductEntity product = findById(id);
         product.setName(name);
         product.setDescription(description);
         product.setPrice(price);
         product.setStock(stock);
+        product.setImageUrl(imageUrl);
         return repository.save(product);
     }
 
