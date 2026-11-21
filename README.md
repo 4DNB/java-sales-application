@@ -27,14 +27,6 @@ cd backend\products
 
 The products API runs at `http://localhost:8082/api/v1/products`. On startup, Hibernate creates or updates the `products` table in the configured PostgreSQL database. By default, it uses `sales_user_db`; set `PRODUCT_DB_URL`, `PRODUCT_DB_USERNAME`, and `PRODUCT_DB_PASSWORD` to use a dedicated database.
 
-### Backend module explorer
-
-```powershell
-cd backend\module-explorer
-npm install
-npm run dev
-```
-
 Open the local URL printed by Vite to browse the backend service catalog.
 
 ### Frontend

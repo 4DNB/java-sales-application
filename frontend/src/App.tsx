@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import ProductsPage from './modules/products/ProductsPage'
+import LoginPage from './modules/auth/LoginPage'
 import './App.css'
 
 type User = {
@@ -21,6 +22,10 @@ const emptyForm = {
 }
 
 function App() {
+  const [currentUser, setCurrentUser] = useState<{ email: string; name: string } | null>(() => {
+    const storedSession = localStorage.getItem('sales-app-session')
+    return storedSession ? JSON.parse(storedSession) as { email: string; name: string } : null
+  })
   const [activeModule, setActiveModule] = useState<'users' | 'products'>('users')
   const [users, setUsers] = useState<User[]>([])
   const [form, setForm] = useState(emptyForm)
@@ -95,6 +100,21 @@ function App() {
     }
   }
 
+  const login = (email: string, name: string) => {
+    const session = { email, name }
+    localStorage.setItem('sales-app-session', JSON.stringify(session))
+    setCurrentUser(session)
+  }
+
+  const logout = () => {
+    localStorage.removeItem('sales-app-session')
+    setCurrentUser(null)
+  }
+
+  if (!currentUser) {
+    return <LoginPage onLogin={login} />
+  }
+
   return (
     <main className="app">
       <header className="header">
@@ -102,7 +122,10 @@ function App() {
           <p className="eyebrow">Sales application</p>
           <h1>{activeModule === 'users' ? 'User management' : 'Product management'}</h1>
         </div>
-        {activeModule === 'users' && <span className="count">{users.length} users</span>}
+        <div className="header-actions">
+          {activeModule === 'users' && <span className="count">{users.length} users</span>}
+          <button type="button" className="logout-button" onClick={logout}>Sign out</button>
+        </div>
       </header>
 
       <nav className="module-nav" aria-label="Application modules">
