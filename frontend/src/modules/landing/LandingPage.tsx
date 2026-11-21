@@ -98,9 +98,9 @@ function LandingPage({ onLogin }: LandingPageProps) {
           <div className="product-grid">
             {products.map((product) => (
               <article className="product-card" key={product.id}>
-                <div className="product-art" aria-hidden="true">
+                <div className="product-art">
                   {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} />
+                    <img src={product.imageUrl} alt={product.name} loading="lazy" />
                   ) : (
                     <span>{product.name.charAt(0).toUpperCase()}</span>
                   )}
