@@ -230,6 +230,18 @@
   line-height: 1.45;
 }
 
+.register-link {
+  padding: 4px 0;
+  background: transparent;
+  color: #65718a;
+  font-size: 13px;
+  text-align: center;
+}
+
+.register-link strong {
+  color: #5575db;
+}
+
 @media (max-width: 820px) {
   .login-page { grid-template-columns: 1fr; }
   .login-brand {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import ProductsPage from './modules/products/ProductsPage'
 import LoginPage from './modules/auth/LoginPage'
+import RegisterPage from './modules/auth/RegisterPage'
 import LandingPage from './modules/landing/LandingPage'
 import './App.css'
 
@@ -23,7 +24,7 @@ const emptyForm = {
 }
 
 function App() {
-  const [publicView, setPublicView] = useState<'landing' | 'login'>('landing')
+  const [publicView, setPublicView] = useState<'landing' | 'login' | 'register'>('landing')
   const [currentUser, setCurrentUser] = useState<{ email: string; name: string } | null>(() => {
     const storedSession = localStorage.getItem('sales-app-session')
     return storedSession ? JSON.parse(storedSession) as { email: string; name: string } : null
@@ -115,9 +116,12 @@ function App() {
 
   if (!currentUser) {
     if (publicView === 'login') {
-      return <LoginPage onLogin={login} onBack={() => setPublicView('landing')} />
+      return <LoginPage onLogin={login} onBack={() => setPublicView('landing')} onRegister={() => setPublicView('register')} />
     }
-    return <LandingPage onLogin={() => setPublicView('login')} />
+    if (publicView === 'register') {
+      return <RegisterPage onRegister={login} onBack={() => setPublicView('landing')} onLogin={() => setPublicView('login')} />
+    }
+    return <LandingPage onLogin={() => setPublicView('login')} onRegister={() => setPublicView('register')} />
   }
 
   return (

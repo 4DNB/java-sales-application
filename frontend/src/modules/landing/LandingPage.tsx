@@ -13,9 +13,10 @@ type Product = {
 
 type LandingPageProps = {
   onLogin: () => void
+  onRegister: () => void
 }
 
-function LandingPage({ onLogin }: LandingPageProps) {
+function LandingPage({ onLogin, onRegister }: LandingPageProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -52,6 +53,7 @@ function LandingPage({ onLogin }: LandingPageProps) {
         </a>
         <nav className="landing-nav" aria-label="Navegación principal">
           <button type="button" onClick={scrollToCatalog}>Catálogo</button>
+          <button type="button" onClick={onRegister}>Registrarse</button>
           <button type="button" className="landing-login" onClick={onLogin}>
             Iniciar sesión
           </button>

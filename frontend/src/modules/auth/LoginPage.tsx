@@ -5,6 +5,7 @@ import './login.css'
 type LoginPageProps = {
   onLogin: (email: string, name: string) => void
   onBack?: () => void
+  onRegister?: () => void
 }
 
 type LoginUser = {
@@ -16,7 +17,7 @@ type LoginUser = {
 const DEMO_EMAIL = 'admin@sales.com'
 const DEMO_PASSWORD = 'admin123'
 
-function LoginPage({ onLogin, onBack }: LoginPageProps) {
+function LoginPage({ onLogin, onBack, onRegister }: LoginPageProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
@@ -151,6 +152,11 @@ function LoginPage({ onLogin, onBack }: LoginPageProps) {
           <button type="button" className="demo-button" onClick={fillDemoAccount}>
             Usar cuenta de demostración
           </button>
+          {onRegister && (
+            <button type="button" className="register-link" onClick={onRegister}>
+              ¿No tienes cuenta? <strong>Regístrate</strong>
+            </button>
+          )}
         </form>
       </section>
     </main>
