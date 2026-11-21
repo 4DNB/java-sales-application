@@ -18,6 +18,7 @@
 	<modules>
 		<module>backend/user-service</module>
 		<module>backend/products</module>
+		<module>backend/order-service</module>
 	</modules>
 
 	<properties>

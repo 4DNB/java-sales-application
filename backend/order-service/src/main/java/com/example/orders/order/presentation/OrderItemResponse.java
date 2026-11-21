@@ -1,6 +1,6 @@
-package com.example.products.order.presentation;
+package com.example.orders.order.presentation;
 
-import com.example.products.order.persistence.OrderItemSnapshot;
+import com.example.orders.order.persistence.OrderItemSnapshot;
 
 import java.math.BigDecimal;
 

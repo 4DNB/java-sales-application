@@ -3,12 +3,13 @@ import type { FormEvent } from 'react'
 import './login.css'
 
 type LoginPageProps = {
-  onLogin: (email: string, name: string, role: LoginUser['role']) => void
+  onLogin: (email: string, name: string, role: LoginUser['role'], userId: number | null) => void
   onBack?: () => void
   onRegister?: () => void
 }
 
 type LoginUser = {
+  id: number
   name: string
   email: string
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
@@ -56,7 +57,12 @@ function LoginPage({ onLogin, onBack, onRegister }: LoginPageProps) {
         }
       }
 
-      onLogin(normalizedEmail, matchedUser?.name || 'Administrador', matchedUser?.role || 'ADMIN')
+      onLogin(
+        normalizedEmail,
+        matchedUser?.name || 'Administrador',
+        matchedUser?.role || 'ADMIN',
+        matchedUser?.id ?? null,
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión')
     } finally {

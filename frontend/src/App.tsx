@@ -18,6 +18,7 @@ type Session = {
   email: string
   name: string
   role: User['role']
+  userId: number | null
 }
 
 const apiUrl = '/api/v1/users'
@@ -37,11 +38,16 @@ function App() {
     try {
       const session = JSON.parse(storedSession) as Partial<Session>
       if (typeof session.email !== 'string' || typeof session.name !== 'string') return null
+      if (!Object.hasOwn(session, 'userId')) {
+        localStorage.removeItem('sales-app-session')
+        return null
+      }
       const roles: User['role'][] = ['ADMIN', 'CUSTOMER', 'SELLER', 'MANAGER']
       return {
         email: session.email,
         name: session.name,
         role: roles.includes(session.role as User['role']) ? session.role as User['role'] : 'CUSTOMER',
+        userId: typeof session.userId === 'number' && session.userId > 0 ? session.userId : null,
       }
     } catch {
       localStorage.removeItem('sales-app-session')
@@ -126,8 +132,8 @@ function App() {
     }
   }
 
-  const login = (email: string, name: string, role: User['role']) => {
-    const session = { email, name, role }
+  const login = (email: string, name: string, role: User['role'], userId: number | null) => {
+    const session = { email, name, role, userId }
     localStorage.setItem('sales-app-session', JSON.stringify(session))
     setCurrentUser(session)
     setPublicView('landing')

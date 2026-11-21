@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.UUID;
+
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -78,7 +80,7 @@ class ProductControllerTest {
     }
 
     @Test
-    void createsOrderAndDecrementsStockWithoutOverselling() throws Exception {
+    void reservesInventoryIdempotentlyAndRollsBackInsufficientMultiProductReservations() throws Exception {
         MvcResult productResult = mockMvc.perform(post("/api/v1/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -88,15 +90,24 @@ class ProductControllerTest {
                 .andReturn();
         long productId = objectMapper.readTree(productResult.getResponse().getContentAsString()).get("id").asLong();
 
-        mockMvc.perform(post("/api/v1/orders")
+        UUID reservationId = UUID.randomUUID();
+        String reservationRequest = """
+                {"reservationId":"%s","items":[{"productId":%d,"quantity":2}]}
+                """.formatted(reservationId, productId);
+
+        mockMvc.perform(post("/internal/v1/inventory/reservations")
+                        .header("X-Inventory-Service-Key", "test-inventory-key")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"customerName":"Taylor Customer","customerEmail":"taylor@example.com",
-                                 "items":[{"productId":%d,"quantity":2}]}
-                                """.formatted(productId)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.total", is(10.0)))
-                .andExpect(jsonPath("$.items[0].quantity", is(2)));
+                        .content(reservationRequest))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reservationId", is(reservationId.toString())))
+                .andExpect(jsonPath("$.items[0].unitPrice", is(5.0)));
+
+        mockMvc.perform(post("/internal/v1/inventory/reservations")
+                        .header("X-Inventory-Service-Key", "test-inventory-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(reservationRequest))
+                .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/v1/products/{id}", productId))
                 .andExpect(status().isOk())
@@ -112,18 +123,17 @@ class ProductControllerTest {
         long secondProductId = objectMapper.readTree(secondProductResult.getResponse().getContentAsString())
                 .get("id").asLong();
 
-        mockMvc.perform(post("/api/v1/orders")
+        mockMvc.perform(post("/internal/v1/inventory/reservations")
+                        .header("X-Inventory-Service-Key", "test-inventory-key")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"customerName":"Taylor Customer","customerEmail":"taylor@example.com",
-                                 "items":[{"productId":%d,"quantity":1},{"productId":%d,"quantity":4}]}
-                                """.formatted(productId, secondProductId)))
+                                {"reservationId":"%s","items":[{"productId":%d,"quantity":1},{"productId":%d,"quantity":4}]}
+                                """.formatted(UUID.randomUUID(), productId, secondProductId)))
                 .andExpect(status().isConflict());
 
         mockMvc.perform(get("/api/v1/products/{id}", productId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stock", is(1)));
-
         mockMvc.perform(get("/api/v1/products/{id}", secondProductId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stock", is(3)));
@@ -133,4 +143,5 @@ class ProductControllerTest {
         mockMvc.perform(delete("/api/v1/products/{id}", secondProductId))
                 .andExpect(status().isNoContent());
     }
+
 }

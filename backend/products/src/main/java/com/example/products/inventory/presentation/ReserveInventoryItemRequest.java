@@ -1,9 +1,9 @@
-package com.example.products.order.presentation;
+package com.example.products.inventory.presentation;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-public record OrderItemRequest(
+public record ReserveInventoryItemRequest(
         @NotNull @Positive Long productId,
         @NotNull @Positive Integer quantity
 ) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { formatPenCurrency } from '../../utils/currency'
 import './landing.css'
 
@@ -15,6 +15,7 @@ type CustomerSession = {
   email: string
   name: string
   role: 'ADMIN' | 'CUSTOMER' | 'SELLER' | 'MANAGER'
+  userId: number | null
 }
 
 type LandingPageProps = {
@@ -33,6 +34,7 @@ function LandingPage({ onLogin, onRegister, currentUser, onManage, onLogout }: L
   const [checkoutError, setCheckoutError] = useState('')
   const [checkoutMessage, setCheckoutMessage] = useState('')
   const [checkingOut, setCheckingOut] = useState(false)
+  const checkoutKey = useRef<string | null>(null)
   const isCustomer = currentUser?.role === 'CUSTOMER'
   const cartItems = products.filter((product) => (cart[product.id] ?? 0) > 0)
   const cartTotal = cartItems.reduce(
@@ -62,6 +64,7 @@ function LandingPage({ onLogin, onRegister, currentUser, onManage, onLogout }: L
   }
 
   const addToCart = (product: Product) => {
+    checkoutKey.current = null
     setCheckoutError('')
     setCheckoutMessage('')
     setCart((current) => {
@@ -72,6 +75,7 @@ function LandingPage({ onLogin, onRegister, currentUser, onManage, onLogout }: L
   }
 
   const changeCartQuantity = (product: Product, change: number) => {
+    checkoutKey.current = null
     setCheckoutError('')
     setCheckoutMessage('')
     setCart((current) => {
@@ -91,13 +95,18 @@ function LandingPage({ onLogin, onRegister, currentUser, onManage, onLogout }: L
     setCheckingOut(true)
     setCheckoutError('')
     setCheckoutMessage('')
+    checkoutKey.current ??= crypto.randomUUID()
     try {
       const response = await fetch('/api/v1/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': checkoutKey.current,
+        },
         body: JSON.stringify({
           customerName: currentUser.name,
           customerEmail: currentUser.email,
+          userId: currentUser.userId,
           items: cartItems.map((product) => ({
             productId: product.id,
             quantity: cart[product.id],
@@ -105,6 +114,7 @@ function LandingPage({ onLogin, onRegister, currentUser, onManage, onLogout }: L
         }),
       })
       if (!response.ok) {
+        if (response.status < 500) checkoutKey.current = null
         const body: unknown = await response.json().catch(() => null)
         const message =
           typeof body === 'object' && body !== null && 'detail' in body && typeof body.detail === 'string'
@@ -112,7 +122,8 @@ function LandingPage({ onLogin, onRegister, currentUser, onManage, onLogout }: L
             : 'No se pudo completar la compra. Inténtalo de nuevo.'
         throw new Error(message)
       }
-      const order = await response.json() as { id: number }
+      const order = await response.json() as { id: string }
+      checkoutKey.current = null
       setProducts((current) => current.map((product) => ({
         ...product,
         stock: product.stock - (cart[product.id] ?? 0),
