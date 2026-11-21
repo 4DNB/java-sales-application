@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import './login.css'
 
 type RegisterPageProps = {
-  onRegister: (email: string, name: string) => void
+  onRegister: () => void
   onBack: () => void
   onLogin: () => void
 }
@@ -41,7 +41,7 @@ function RegisterPage({ onRegister, onBack, onLogin }: RegisterPageProps) {
         const body = await response.json().catch(() => null)
         throw new Error(body?.message || body?.details?.[0] || 'No se pudo crear la cuenta')
       }
-      onRegister(normalizedEmail, name.trim())
+      onRegister()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear la cuenta')
     } finally {

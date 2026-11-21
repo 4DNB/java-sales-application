@@ -119,7 +119,7 @@ function App() {
       return <LoginPage onLogin={login} onBack={() => setPublicView('landing')} onRegister={() => setPublicView('register')} />
     }
     if (publicView === 'register') {
-      return <RegisterPage onRegister={login} onBack={() => setPublicView('landing')} onLogin={() => setPublicView('login')} />
+      return <RegisterPage onRegister={() => setPublicView('landing')} onBack={() => setPublicView('landing')} onLogin={() => setPublicView('login')} />
     }
     return <LandingPage onLogin={() => setPublicView('login')} onRegister={() => setPublicView('register')} />
   }
